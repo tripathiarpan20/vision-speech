@@ -4,7 +4,7 @@ from validation.proxy import validation_utils
 from starlette.responses import StreamingResponse
 from core import tasks
 from fastapi.routing import APIRouter
-from validation.core_validator import get_validator_instance
+from validation.core_validator import core_validator
 import fastapi
 from validation.proxy import dependencies
 import bittensor as bt
@@ -27,7 +27,6 @@ async def speech(
     else:
         raise HTTPException(status_code=400, detail="Invalid model provided")
 
-    core_validator = get_validator_instance()
     result = await core_validator.execute_query(
         synapse, outgoing_model=base_models.TextToSpeechCloneOutgoing, task=tasks.Tasks.tts_clone.value
     )
