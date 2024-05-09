@@ -10,6 +10,7 @@ from validation.proxy import sql
 from fastapi.responses import JSONResponse
 from starlette import status
 from fastapi import Response
+import sys
 
 app = FastAPI(debug=False)
 
@@ -47,51 +48,56 @@ ENDPOINT_TO_CREDITS_USED = {
     "inpaint": 1,
     "scribble": 1,
     "upscale": 1,
+    "text-to-speech-clone": 1
 }
 
+# Check for the --no-middleware flag in the command-line arguments
+if "--no-middleware" in sys.argv:
+    # If the flag is present, do not add the middleware
+    print("Running without middleware")
+else:
+    @app.middleware("http")
+    async def api_key_validator(request, call_next):
+        if request.url.path in ["/docs", "/openapi.json", "/favicon.ico", "/redoc"]:
+            return await call_next(request)
 
-@app.middleware("http")
-async def api_key_validator(request, call_next):
-    if request.url.path in ["/docs", "/openapi.json", "/favicon.ico", "/redoc"]:
-        return await call_next(request)
-
-    api_key = _get_api_key(request)
-    if not api_key:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={"detail": "API key is missing"},
-        )
-
-    with sql.get_db_connection() as conn:
-        api_key_info = sql.get_api_key_info(conn, api_key)
-
-    if api_key_info is None:
-        return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"detail": "Invalid API key"})
-    endpoint = request.url.path.split("/")[-1]
-    credits_required = ENDPOINT_TO_CREDITS_USED.get(endpoint, 1)
-
-    # Now check credits
-    if api_key_info[sql.BALANCE] is not None and api_key_info[sql.BALANCE] <= credits_required:
-        return JSONResponse(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS, content={"detail": "Insufficient credits - sorry!"}
-        )
-
-    # Now check rate limiting
-    with sql.get_db_connection() as conn:
-        rate_limit_exceeded = sql.rate_limit_exceeded(conn, api_key_info)
-        if rate_limit_exceeded:
+        api_key = _get_api_key(request)
+        if not api_key:
             return JSONResponse(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS, content={"detail": "Rate limit exceeded - sorry!"}
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content={"detail": "API key is missing"},
             )
 
-    response: Response = await call_next(request)
-
-    if response.status_code == 200:
         with sql.get_db_connection() as conn:
-            sql.update_requests_and_credits(conn, api_key_info, credits_required)
-            sql.log_request(conn, api_key_info, request.url.path, credits_required)
-            conn.commit()
-    return response
+            api_key_info = sql.get_api_key_info(conn, api_key)
+
+        if api_key_info is None:
+            return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"detail": "Invalid API key"})
+        endpoint = request.url.path.split("/")[-1]
+        credits_required = ENDPOINT_TO_CREDITS_USED.get(endpoint, 1)
+
+        # Now check credits
+        if api_key_info[sql.BALANCE] is not None and api_key_info[sql.BALANCE] <= credits_required:
+            return JSONResponse(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS, content={"detail": "Insufficient credits - sorry!"}
+            )
+
+        # Now check rate limiting
+        with sql.get_db_connection() as conn:
+            rate_limit_exceeded = sql.rate_limit_exceeded(conn, api_key_info)
+            if rate_limit_exceeded:
+                return JSONResponse(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS, content={"detail": "Rate limit exceeded - sorry!"}
+                )
+
+        response: Response = await call_next(request)
+
+        if response.status_code == 200:
+            with sql.get_db_connection() as conn:
+                sql.update_requests_and_credits(conn, api_key_info, credits_required)
+                sql.log_request(conn, api_key_info, request.url.path, credits_required)
+                conn.commit()
+        return response
 
 
 if __name__ == "__main__":

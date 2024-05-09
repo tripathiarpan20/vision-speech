@@ -211,7 +211,9 @@ tasks_to_scoring_function = {
     Tasks.avatar.value: speed_scoring_functions.speed_scoring_images,
     Tasks.clip_image_embeddings.value: speed_scoring_functions.speed_scoring_clip,
     Tasks.sota.value: speed_scoring_functions.speed_scoring_sota,
+    Tasks.tts_clone.value: speed_scoring_functions.speed_scoring_tts_clone,
 }
+
 
 
 async def get_expected_score(result: utility_models.QueryResult, synapse: Dict[str, Any], task: str) -> float:

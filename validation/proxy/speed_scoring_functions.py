@@ -5,6 +5,7 @@ from typing import List
 from models import utility_models
 from models import base_models
 from core.tasks import Tasks
+from loguru import logger
 
 
 def _calculate_speed_modifier(normalised_response_time: float, lower_bound: float, upper_bound: float) -> float:
@@ -31,6 +32,22 @@ def _calculate_work_bonus_text(character_count: int, overhead: float, lower_boun
     bonus_flat = overhead + character_count * lower_bound_for_seconds_per_character
     return bonus_flat**0.8
 
+### SPEECH ###
+#TODO (validator): Implement scoring mechanics for TTS-Clone
+async def speed_scoring_tts_clone(result: utility_models.QueryResult, synapse: Dict[str, Any], task: str) -> float:
+    steps = synapse.get("steps", 1)
+
+    if task == Tasks.tts_clone.value:
+        lower_bound_time = 0.5
+        upper_thershold_time = 1.5
+
+        speed_modifier = _calculate_speed_modifier(lower_bound_time, lower_bound_time, upper_thershold_time)
+        # work_bonus = _calculate_work_bonus_images(steps, T2I_OVERHEAD, lower_bound_time)
+
+        return speed_modifier
+
+    logger.error(f"Task {task} not found")
+    return 1
 
 ### SOTA ####
 
