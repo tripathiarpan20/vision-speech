@@ -300,3 +300,44 @@ async def get_image_from_server(body: BaseModel, post_endpoint: str, timeout: fl
             )
         except httpx.RequestError as error:
             bt.logging.warning(f"Error getting an image; An error occurred while making request to {endpoint}: {error}")
+
+
+def convert_b64_audio_to_wav(audio_b64: str) -> bytes:
+    """
+    Convert a base64 encoded audio file to a WAV file.
+
+    Args:
+        audio_b64 (str): The base64 encoded audio file.
+
+    Returns:
+        bytes: The WAV file.
+    """
+    audio_bytes = base64.b64decode(audio_b64)
+    audio = io.BytesIO(audio_bytes)
+    return audio
+
+async def get_speech_clone_from_server(body: BaseModel, post_endpoint: str, timeout: float = 20.0):
+    endpoint = miner_config.tts_clone_worker_url + post_endpoint
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        try:
+            #BentoML server does not expect the input encapsulated in "input"
+            request_data = body.dict()
+            # request_data = {"input": body.dict()}
+            response = await client.post(endpoint, json=request_data)
+            response.raise_for_status()
+
+            data = response.json()
+            audio_response = utility_models.AudioResponseBody(**data)
+            return audio_response
+
+        except httpx.HTTPStatusError as error:
+            status_code = error.response.status_code
+            error_message = error.response.text
+            bt.logging.warning(
+                f"Error getting an audio; response {status_code} while making request to {endpoint}: {error}\n"
+                f"Error message: {error_message}"
+            )
+            # You can also log the request data for further debugging
+            bt.logging.warning(f"Request data: {request_data}")
+        except Exception as error:
+            bt.logging.warning(f"Error getting an audio; An error occurred while making request to {endpoint}: {error}")

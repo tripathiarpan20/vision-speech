@@ -13,6 +13,9 @@ class AvailableTasksOperation(bt.Synapse, base_models.AvailableTasksOperationBas
     def deserialize(self) -> Optional[Dict[str, bool]]:
         return self.available_tasks
 
+class TextToSpeechClone(bt.Synapse, base_models.TextToSpeechCloneBase):
+    def deserialize(self) -> Optional[List[str]]:
+        return self.audio_b64
 
 class TextToImage(bt.Synapse, base_models.TextToImageBase):
     def deserialize(self) -> Optional[List[str]]:

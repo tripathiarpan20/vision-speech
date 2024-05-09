@@ -18,10 +18,17 @@ class Tasks(Enum):
     clip_image_embeddings = "clip-image-embeddings"
     avatar = "avatar"
     sota = "sota"
+    tts_clone = "styletts2-text-to-speech"
 
 
 # IF YOU ARE MINER, YOU WILL PROBABLY NEED TO FIDDLE WITH THIS:
 SUPPORTED_TASKS = []
+if miner_config.tts_clone_worker_url:
+    SUPPORTED_TASKS.extend(
+        [
+            Tasks.tts_clone.value
+        ]
+    )
 if miner_config.image_worker_url:
     SUPPORTED_TASKS.extend(
         [
@@ -76,6 +83,7 @@ TASKS_TO_SYNAPSE = {
     Tasks.clip_image_embeddings.value: synapses.ClipEmbeddings,
     Tasks.sota.value: synapses.Sota,
     Tasks.avatar.value: synapses.Avatar,
+    Tasks.tts_clone.value: synapses.TextToSpeechClone,
 }
 
 TASKS_TO_MINER_OPERATION_MODULES = {
@@ -92,4 +100,5 @@ TASKS_TO_MINER_OPERATION_MODULES = {
     Tasks.clip_image_embeddings.value: operations.clip_embeddings_operation,
     Tasks.sota.value: operations.sota_operation,
     Tasks.avatar.value: operations.avatar_operation,
+    Tasks.tts_clone.value: operations.text_to_speech_clone_operation
 }
