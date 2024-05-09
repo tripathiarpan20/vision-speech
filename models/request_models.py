@@ -12,6 +12,9 @@ from typing import Optional, List
 from models import utility_models
 import random
 from core import constants as cst, dataclasses as dc
+import base64
+import librosa
+from io import BytesIO
 
 ALLOWED_PARAMS_FOR_ENGINE = {
     utility_models.EngineEnum.PROTEUS.value: {
