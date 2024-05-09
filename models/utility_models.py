@@ -72,6 +72,7 @@ class EngineEnum(str, enum.Enum):
     DREAMSHAPER = "dreamshaper"
     PLAYGROUND = "playground"
     PROTEUS = "proteus"
+    STYLETTS2 = "styletts2"
 
 
 class ImageHashes(BaseModel):
@@ -95,3 +96,6 @@ class ImageResponseBody(BaseModel):
 class MinerChatResponse(BaseModel):
     text: str
     logprob: float
+
+class AudioResponseBody(BaseModel):
+    audio_b64: Optional[str] = None

@@ -95,7 +95,12 @@ MINER_PARAMETERS = {
         "default": None,
         "message": "Llama 3 Text Worker URL: ",
         "process_function": optional_http_address_processing_func,
-    }
+    },
+    core_cst.TTS_CLONE_WORKER_URL_PARAM: {
+        "default": None,
+        "message": "StyleTTS 2 worker URL: ",
+        "process_function": optional_http_address_processing_func,
+    },
 }
 
 
