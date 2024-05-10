@@ -6,11 +6,15 @@ Note that `seed` and `is_mock` are not present anywhere
 Whenever defining new tasks, include the `schema_extra` with an example so that the integration tests do not fail
 """
 
+import bittensor as bt
 from pydantic import BaseModel, Field, root_validator, validator
 from typing import Optional, List
 from models import utility_models
 import random
 from core import constants as cst, dataclasses as dc
+import base64
+import librosa
+from io import BytesIO
 
 ALLOWED_PARAMS_FOR_ENGINE = {
     utility_models.EngineEnum.PROTEUS.value: {

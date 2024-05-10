@@ -13,10 +13,10 @@ MAX_INTERNAL_SERVER_ERRORS = 2
 MINIMUM_ACTIVE_MINERS_TO_APPLY_TIERS = 20
 
 
-NETUID = 19
-NETWORK = "finney"
+NETUID = 51
+NETWORK = "test"
 MAX_RESULTS_TO_SCORE_FOR_TASK = 50
-MINIMUM_TASKS_TO_START_SCORING = 40
+MINIMUM_TASKS_TO_START_SCORING = 1
 
 # TODO: Make these more granular, based on the prediction of the repsonse time perhaps?
 OPERATION_TIMEOUTS: Dict[str, float] = {
@@ -30,6 +30,7 @@ OPERATION_TIMEOUTS: Dict[str, float] = {
     "Avatar": 50,
     "Sota": 180,
     "Chat": 60,
+    "TextToSpeechClone": 30
 }
 
 # FOR PHASE 1 - where synthetic only validators may have a distribution different to organic ones
